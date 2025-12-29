@@ -115,5 +115,6 @@ Incremental partitioning by reporting period
 
 ##### Author
 
-Olayinka Akinbola
+Ola Akinbola
+
 Data Analytics & Engineering Portfolio Project
