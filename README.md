@@ -21,9 +21,6 @@ Format: Parquet
 Update Strategy: Version-controlled ingestion using version_information.data_version
 
 
-<img width="3506" height="440" alt="image" src="https://github.com/user-attachments/assets/6c40524b-f2aa-4507-a812-5340e7bb8223" />
-
-
 
 #### 🔁 Data Flow
 
@@ -38,6 +35,11 @@ If the version is new, records are sent in batches to the Fivetran webhook.
 Fivetran processes events and loads them into S3 as Parquet files.
 
 The latest data_version is saved back to the repository to prevent duplicate ingestion.
+
+
+
+<img width="3506" height="440" alt="image" src="https://github.com/user-attachments/assets/bb117291-6696-4724-a46a-8385cf63aa60" />
+_figure 1: Pipeline Flow Chart_
 
 
 #### 🧠 Duplicate Prevention Logic
