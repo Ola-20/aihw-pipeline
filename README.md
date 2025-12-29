@@ -21,6 +21,10 @@ Format: Parquet
 Update Strategy: Version-controlled ingestion using version_information.data_version
 
 
+<img width="3506" height="440" alt="image" src="https://github.com/user-attachments/assets/6c40524b-f2aa-4507-a812-5340e7bb8223" />
+
+
+
 #### 🔁 Data Flow
 
 GitHub Actions triggers the pipeline (manual or scheduled).
