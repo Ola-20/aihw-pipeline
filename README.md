@@ -54,11 +54,17 @@ If the version has not changed since the last run, the pipeline exits safely wit
 
 #### 📂 Repository Structure
 aihw-pipeline/
+
 ├── .github/
+
 │   └── workflows/
+
 │       └── aihw_to_webhook.yml
+
 ├── aihw_to_webhook.py
+
 ├── last_data_version.txt
+
 └── README.md
 
 #### 📦 Output Data (S3)
@@ -66,11 +72,17 @@ aihw-pipeline/
 Data is written to Amazon S3 in Parquet format:
 
 s3://fivetran-aihw-raw/
+
 └── aihw/
+
     └── webhooks/
+    
         └── test_1/
+        
             └── data/
+            
                 ├── part-00000.parquet
+                
                 └── _metadata files
 
 #### 🚀 Key Features
