@@ -1,10 +1,8 @@
 import os
 import requests
 import math
+from pathlib import Path
 
-# -----------------------------
-# Config
-# -----------------------------
 WEBHOOK_URL = os.getenv("FIVETRAN_WEBHOOK_URL")
 if not WEBHOOK_URL:
     raise ValueError("FIVETRAN_WEBHOOK_URL environment variable not set")
@@ -12,35 +10,47 @@ if not WEBHOOK_URL:
 MEASURE_CODE = "MYH0024"
 AIHW_URL = f"https://myhospitalsapi.aihw.gov.au/api/v1/measures/{MEASURE_CODE}/data-items"
 
-BATCH_SIZE = 500   # safe size for webhook ingestion
+BATCH_SIZE = 500
+HEADERS = {"User-Agent": "Mozilla/5.0", "Accept": "application/json"}
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0",
-    "Accept": "application/json"
-}
+VERSION_FILE = Path("last_data_version.txt")
 
-# -----------------------------
-# Step 1: Fetch AIHW data
-# -----------------------------
+
+def read_last_version() -> int:
+    if not VERSION_FILE.exists():
+        return 0
+    txt = VERSION_FILE.read_text().strip()
+    return int(txt) if txt else 0
+
+
+def write_last_version(v: int) -> None:
+    VERSION_FILE.write_text(str(v) + "\n")
+
+
 print("Fetching AIHW data...")
 resp = requests.get(AIHW_URL, headers=HEADERS)
 resp.raise_for_status()
-
 data = resp.json()
 
-if "result" not in data:
-    raise ValueError("AIHW response missing 'result' key")
+version_info = data.get("version_information", {})
+current_version = int(version_info.get("data_version", 0))
+last_version = read_last_version()
 
-records = data["result"]
-total_records = len(records)
+print(f"Last ingested data_version: {last_version}")
+print(f"Current AIHW data_version:   {current_version}")
 
-print(f"Fetched {total_records} records from AIHW")
+if current_version == 0:
+    raise ValueError("AIHW response missing version_information.data_version")
 
-# -----------------------------
-# Step 2: Send to webhook in batches
-# -----------------------------
-num_batches = math.ceil(total_records / BATCH_SIZE)
-print(f"Sending data in {num_batches} batches...")
+if current_version <= last_version:
+    print("No new AIHW version. Skipping send ✅")
+    raise SystemExit(0)
+
+records = data.get("result", [])
+print(f"New version detected! Records to send: {len(records)}")
+
+num_batches = math.ceil(len(records) / BATCH_SIZE)
+print(f"Sending {num_batches} batches...")
 
 for i in range(num_batches):
     start = i * BATCH_SIZE
@@ -50,6 +60,7 @@ for i in range(num_batches):
     payload = [
         {
             "measure_code": MEASURE_CODE,
+            "data_version": current_version,
             "batch_number": i + 1,
             "total_batches": num_batches,
             "record": r
@@ -59,7 +70,8 @@ for i in range(num_batches):
 
     r = requests.post(WEBHOOK_URL, json=payload)
     r.raise_for_status()
+    print(f"Batch {i + 1}/{num_batches} sent")
 
-    print(f"Batch {i + 1}/{num_batches} sent successfully")
-
-print("All AIHW data sent to Fivetran webhook ✅")
+print("All AIHW data sent ✅ Updating last_data_version.txt...")
+write_last_version(current_version)
+print("Updated last_data_version.txt ✅")

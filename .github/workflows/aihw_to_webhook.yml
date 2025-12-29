@@ -1,7 +1,12 @@
 name: AIHW to Fivetran Webhook
 
 on:
-  workflow_dispatch:  # run manually for now
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"   # every 6 hours (UTC)
+
+permissions:
+  contents: write
 
 jobs:
   aihw-to-webhook:
@@ -26,3 +31,16 @@ jobs:
           FIVETRAN_WEBHOOK_URL: ${{ secrets.FIVETRAN_WEBHOOK_URL }}
         run: |
           python aihw_to_webhook.py
+
+      - name: Commit updated data_version (if changed)
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add last_data_version.txt
+          git commit -m "Update last_data_version"
+          git push
