@@ -1,0 +1,19 @@
+# Python virtual environment
+venv/
+.venv/
+
+# VS Code settings
+.vscode/
+
+# Data files (generated / local)
+*.parquet
+
+# Local exploration scripts
+explore.py
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
